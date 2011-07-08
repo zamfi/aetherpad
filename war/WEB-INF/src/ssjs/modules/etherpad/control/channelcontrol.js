@@ -6,6 +6,7 @@ import("fastJSON");
 import("stringutils.startsWith");
 import("gae.taskqueue");
 import("etherpad.control.integergrab_memcache");
+jimport("com.google.appengine.api.channel.ChannelServiceFactory");
 
 function render_newchannel() {
   var appKey = request.params.appKey;
@@ -13,8 +14,19 @@ function render_newchannel() {
   response.write(fastJSON.stringify({ token: channel.createChannel(appKey) }));
 }
 
+function validateAppKeyDate(appKey) {
+  var d = Number(appKey.split("-")[2]);
+  return (+new Date() - d < 2*3600*1000) // two hours
+}
+
 function render_send() {
   var appKey = request.params.appKey;
+  if (! validateAppKeyDate(appKey)) {
+    response.setContentType("application/json");
+    response.write(fastJSON.stringify({ status: "appkey-expired" }));
+    serverhandlers.cometHandler("disconnect", appKey);
+    return;
+  }
   var messages = fastJSON.parse(request.params.messages).a;
   messages.forEach(function(msg) {
     // keep all messages from the channelcontrol key local to this module.
@@ -26,10 +38,23 @@ function render_send() {
       handleComet("message", appKey, msg);
       return;
     }
+    log.info("message from: "+appKey);
     serverhandlers.cometHandler("message", appKey, msg);
   });
   response.setContentType("application/json");
   response.write(fastJSON.stringify({ status: "ok" }));
+}
+
+function handle_connected() {
+  presence = ChannelServiceFactory.getChannelService().parsePresence(request.underlying);
+  log.info("connected: "+presence.clientId());
+  serverhandlers.cometHandler("connect", presence.clientId());
+}
+
+function handle_disconnected() {
+  presence = ChannelServiceFactory.getChannelService().parsePresence(request.underlying);
+  log.info("disconnected: "+presence.clientId());
+  serverhandlers.cometHandler("disconnect", presence.clientId());
 }
 
 /**

@@ -341,6 +341,8 @@ function handlePath() {
 //    ['/robots.txt', forward(static_control)],
 //    ['/crossdomain.xml', forward(static_control)],
     [PrefixMatcher('/_ah/queue/'), forward(queue_dispatcher)],
+    ['/_ah/channel/connected/', channelcontrol.handle_connected],
+    ['/_ah/channel/disconnected/', channelcontrol.handle_disconnected],
     [PrefixMatcher('/static+/'), forward(static_control)],
     [PrefixMatcher('/ep/channel/'), forward(channelcontrol)],
     [PrefixMatcher('/ep/ig/naivetask/'), forward(integergrab_naivetask)],

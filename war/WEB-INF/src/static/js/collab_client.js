@@ -171,7 +171,7 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options) {
       appLevelDisconnectReason = null;
 
       var oldSocketId = socketId;
-      socketId = String(Math.floor(Math.random()*1e12));
+      socketId = padId + "-padpage-" + (+new Date) + "-" + String(Math.floor(Math.random()*1e12));
       socket = new WebSocket(socketId);
       socket.onmessage = wrapRecordingErrors("socket.onmessage", handleMessageFromServer);
       socket.onclose = wrapRecordingErrors("socket.onclose", handleSocketClosed);

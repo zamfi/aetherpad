@@ -100,7 +100,7 @@ function getConnection(padId, roomType, socketId) {
 
 function removeConnection(padId, roomType, socketId) {
   return modifyConnections(padId, roomType, function(conns) {
-    delete conn[socketId];
+    delete conns[socketId];
   });
 }
 
@@ -380,9 +380,14 @@ function handleComet(cometOp, cometId, wrappedMsg) {
   }
 
   var socketId = requireTruthy(cometId, 2);
-  var msg = wrappedMsg.data;
-  var padId = requireTruthy(wrappedMsg.padId, 4);
-  var roomType = requireTruthy(wrappedMsg.roomType, 11);
+  if (wrappedMsg) {
+    var msg = wrappedMsg.data;
+    var padId = requireTruthy(wrappedMsg.padId, 4);
+    var roomType = requireTruthy(wrappedMsg.roomType, 11);    
+  } else if (cometEvent == "disconnect" || cometEvent == "connect") {
+    var padId = cometId.split("-")[0];
+    var roomType = cometId.split("-")[1];
+  }
 
   model.doWithPadLock(padId, function() {
     if (cometEvent == "disconnect") {

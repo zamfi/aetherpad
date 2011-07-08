@@ -4,18 +4,18 @@
 -->
 <project>
   <property environment="env"/>
-  <property name="sdk.dir" value="${env.GAE_HOME}" />
+  <property name="appengine.sdk.dir" value="${env.GAE_HOME}" />
   <property name="scala.home" value="${env.SCALA_HOME}" />
   <property name="src" value="war/WEB-INF/src" />
 
-  <import file="${sdk.dir}/config/user/ant-macros.xml" />
+  <import file="${appengine.sdk.dir}/config/user/ant-macros.xml" />
 
   <path id="project.classpath">
     <pathelement path="war/WEB-INF/classes" />
     <fileset dir="war/WEB-INF/lib">
       <include name="**/*.jar" />
     </fileset>
-    <fileset dir="${sdk.dir}/lib">
+    <fileset dir="${appengine.sdk.dir}/lib">
       <include name="shared/**/*.jar" />
     </fileset>
   </path>
@@ -40,7 +40,7 @@
         file="${scala.home}/lib/scala-library.jar"
         todir="war/WEB-INF/lib"
         flatten="true">
-      <fileset dir="${sdk.dir}/lib/user">
+      <fileset dir="${appengine.sdk.dir}/lib/user">
         <include name="**/*.jar" />
       </fileset>
       <fileset dir="${basedir}/lib">
@@ -52,7 +52,7 @@
   <target name="compile" depends="copyjardeps,init"
       description="Compiles Java source and copies other source files to the WAR.">
 
-    <!-- create teh classes/ dir where we will copy things. -->
+    <!-- create the classes/ dir where we will copy things. -->
     <mkdir dir="war/WEB-INF/classes" />
 
     <javac
@@ -60,34 +60,34 @@
       destdir="war/WEB-INF/classes"
       classpathref="project.classpath"
       debug="on" />
-    <fsc
+    <scalac
       srcdir="${src}/scala"
       destdir="war/WEB-INF/classes"
       classpathref="project.classpath"
       scalacdebugging="true" />
   </target>
 
-  <target name="datanucleusenhance" depends="compile"
+  <!-- <target name="datanucleusenhance" depends="compile"
       description="Performs JDO enhancement on compiled data classes.">
     <enhance_war war="war" />
-  </target>
+  </target> -->
 
-  <target name="runserver" depends="datanucleusenhance"
+  <target name="runserver" depends="compile"
       description="Starts the development server.">
     <dev_appserver war="war" />
   </target>
 
-  <target name="update" depends="datanucleusenhance"
+  <target name="update" depends="compile"
       description="Uploads the application to App Engine.">
     <appcfg action="update" war="war" />
   </target>
 
-  <target name="update_indexes" depends="datanucleusenhance"
+  <target name="update_indexes" depends="compile"
       description="Uploads just the datastore index configuration to App Engine.">
     <appcfg action="update_indexes" war="war" />
   </target>
 
-  <target name="rollback" depends="datanucleusenhance"
+  <target name="rollback" depends="compile"
       description="Rolls back an interrupted application update.">
     <appcfg action="rollback" war="war" />
   </target>
